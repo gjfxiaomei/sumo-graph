@@ -1,0 +1,4 @@
+FT:   average travel:456  delay:55
+SOTL: average travel:164  delay:60
+FAT:  average travel:70   delay:70
+LIT:  average travel:56   delay:280

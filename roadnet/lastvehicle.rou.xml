@@ -1,0 +1,9 @@
+<routes>
+    <vType accel="1.0" decel="4.5" id="standard_car" length="5.0" minGap="2.5" maxSpeed="25" sigma="0.5" />
+    <route id="N_S" edges="N2TL TL2S"/>
+    <route id="E_W" edges="E2TL TL2W"/>
+    <flow id="N_S1" type="standard_car" begin="0" end="4" route="N_S" probability="1" departLane="best" departSpeed="12"/>
+    <!-- <flow id="E_W" type="standard_car" begin="10" end="13" number="5" route="E_W" departLane="best" departSpeed="12"/> -->
+    <vehicle id="E_W_0" type="standard_car" route="E_W" depart="5" departLane="best" departSpeed="10" />
+    <flow id="N_S2" type="standard_car" begin="6" end="120" route="N_S" probability="1" departLane="best" departSpeed="10"/>
+</routes>

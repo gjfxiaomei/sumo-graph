@@ -1,0 +1,2 @@
+2021-11-11 15:53:58,893 - train.py[line:136] - INFO: episode:1 - Simulation time:6.6s - Training time:10.5s - Total:17.1s
+2021-11-11 15:54:17,604 - train.py[line:136] - INFO: episode:2 - Simulation time:7.0s - Training time:11.6s - Total:18.6s
