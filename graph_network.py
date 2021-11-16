@@ -46,7 +46,7 @@ class GATLayer(nn.Module):
 
 
 class MultiHeadGATLayer(nn.Module):
-    def __init__(self, g, in_dim, out_dim, num_heads, merge='cat', edge_type):
+    def __init__(self, g, in_dim, out_dim, num_heads, edge_type, merge='cat'):
         super(MultiHeadGATLayer, self).__init__()
         self.heads = nn.ModuleList()
         for i in range(num_heads):

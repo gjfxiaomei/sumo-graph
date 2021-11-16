@@ -32,10 +32,10 @@ def parse_cl_args():
     
     #graph params
 
-    parser.add_argument("-in_dim", type=int, default=8)
-    parser.add_argument('-hidden_dim', type=int, default=32)
-    parser.add_argument('-out_dim', type=int, default=8)
-    parser.add_argument('-num_heads', type=int, default=2)
+    parser.add_argument("-graph_in_dim", type=int, default=8)
+    parser.add_argument('-graph_hidden_dim', type=int, default=32)
+    parser.add_argument('-graph_out_dim', type=int, default=8)
+    parser.add_argument('-graph_num_heads', type=int, default=2)
 
 
     #rl parmas

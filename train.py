@@ -27,7 +27,7 @@ class Controller:
         self.mode = 'train'
         self.sumo_agent = SumoAgent(args, self.args.roadnet, self.mode, self.args.red_duration, self.args.yellow_duration)     
         self.episode_road_travel_times = {road:[] for road in self.sumo_agent.incoming_roads}
-        self.graph_agent = GraphAgent(self.sumo_agent.get_tl_green_phases(), self.args.graph_in_dim, self.args.graph_hidden_dim, self.args.out_dim, self.args.graph_num_heads, ('road', 'connected', 'road'))
+        self.graph_agent = GraphAgent(self.sumo_agent.get_tl_green_phases(), self.args.graph_in_dim, self.args.graph_hidden_dim, self.args.graph_out_dim, self.args.graph_num_heads, ('road', 'connected', 'road'))
 
         self.episode_average_travel_times = []
         self.save_path = set_train_path(args.roadnet, args.tsc, self.mode, self.args.metric, self.args.cmt)
