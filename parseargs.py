@@ -30,6 +30,14 @@ def parse_cl_args():
     parser.add_argument("-mode",type=str,default='train',dest='mode',help='option:trian,test')
     parser.add_argument("-scale",type=float,default=1.4,dest='scale',help='vehicle generation scale parameter, higher values generates more vehicles')
     
+    #graph params
+
+    parser.add_argument("-in_dim", type=int, default=8)
+    parser.add_argument('-hidden_dim', type=int, default=32)
+    parser.add_argument('-out_dim', type=int, default=8)
+    parser.add_argument('-num_heads', type=int, default=2)
+
+
     #rl parmas
     parser.add_argument("-batch_size", type=int, default=32, dest='batch_size', help='batch size to sample from replay to train neural net, default: 32')
     #neural net params

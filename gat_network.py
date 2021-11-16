@@ -1,6 +1,4 @@
-import dgl
 import torch
-from torch.cuda import init
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -76,47 +74,3 @@ class GraphNetwork(nn.Module):
         h = F.elu(h)
         h = self.layer2(h)
         return h
-
-
-N_IN  = 0
-N_OUT = 1
-S_IN  = 2
-S_OUT = 3
-W_IN  = 4
-W_OUT = 5
-E_IN  = 6
-E_OUT = 7
-
-class GraphAgent(object):
-    def __init__(self, phase_list, in_dim, hidden_dim, out_dim, num_heads, edge_type):
-        self.agent_dict = {}
-        for phase in phase_list:
-            g = self.generate_graph(phase)
-            self.agent_dict[phase] = GraphNetwork(g, in_dim, hidden_dim, out_dim, num_heads, edge_type)
-    
-    def generate_graph(self, phase):
-        #incoming_lanes = ['E2TL_1', 'E2TL_2', 'N2TL_1', 'N2TL_2', 'S2TL_1', 'S2TL_2', 'W2TL_1', 'W2TL_2']
-        #对于一个phase: gGGgrrgrrgrr
-        #按照 N-E-S-W 的顺序
-        # N2TL_(0,1,2)-E2TL_(0,1,2)-S2TL(0,1,2)-W2TL_(0,1,2) 
-        #右车道是0，中间是1，左车道是2
-        #state也是根据这个顺序
-        u, v = torch.tensor([N_IN, N_IN, N_IN, E_IN, E_IN, E_IN, S_IN, S_IN, S_IN, W_IN, W_IN, W_IN]), torch.tensor([W_OUT, S_OUT, E_OUT, N_OUT, W_OUT, S_OUT, E_OUT, N_OUT, W_OUT, S_OUT, E_OUT, N_OUT])
-        connected_edges_from = []
-        connected_edges_to = []
-        stuck_edges_from = []
-        stuck_edges_to = []
-        
-        for i, s in enumerate(phase):
-            #TODO: g和G的权重可能不同
-            if s=='g' or s=='G':
-                connected_edges_from.append(u[i])
-                connected_edges_to.append(v[i])
-            else:
-                stuck_edges_from.append(u[i])
-                stuck_edges_to.append(v[i])
-        g = dgl.heterograph({
-            ('road', 'connected', 'road'): (connected_edges_from, connected_edges_to),
-            ('road', 'stuck', 'road'): (stuck_edges_from, stuck_edges_to)
-        })
-        return g

@@ -1,4 +1,5 @@
 import os
+from graph_network import GraphAgent
 from parseargs import parse_cl_args
 from logger import Logger
 from tqdm import tqdm
@@ -26,10 +27,15 @@ class Controller:
         self.mode = 'train'
         self.sumo_agent = SumoAgent(args, self.args.roadnet, self.mode, self.args.red_duration, self.args.yellow_duration)     
         self.episode_road_travel_times = {road:[] for road in self.sumo_agent.incoming_roads}
+        self.graph_agent = GraphAgent(self.sumo_agent.get_tl_green_phases(), self.args.graph_in_dim, self.args.graph_hidden_dim, self.args.out_dim, self.args.graph_num_heads, ('road', 'connected', 'road'))
+
         self.episode_average_travel_times = []
         self.save_path = set_train_path(args.roadnet, args.tsc, self.mode, self.args.metric, self.args.cmt)
         self.saver = Saver(self.save_path)
-        
+        self.graph_memory = {}
+        for phase in  self.sumo_agent.get_tl_green_phases():
+            self.graph_memory[phase] = []
+        print(self.graph_memory)
         state_size = self.sumo_agent.get_state_size()
         action_size = self.sumo_agent.get_action_size()
         if self.args.tsc == 'dqn':
@@ -69,6 +75,7 @@ class Controller:
                 action = self.alg_agent.get_action(state)
                 #simulate a phase
                 reward, next_state, _ = self.sumo_agent.simulate_action(action)
+                self.graph_memory[phase].append((g, next_state))
                 # print(reward)
                 self.episode_reward += reward
                 self.time_step =self.sumo_agent.get_timestep()

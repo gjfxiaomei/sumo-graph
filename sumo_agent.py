@@ -126,20 +126,23 @@ class SumoAgent:
         #右车道是0，中间是1，左车道是2
         #state也是根据这个顺序
         u, v = th.tensor([N_IN, N_IN, N_IN, E_IN, E_IN, E_IN, S_IN, S_IN, S_IN, W_IN, W_IN, W_IN]), th.tensor([W_OUT, S_OUT, E_OUT, N_OUT, W_OUT, S_OUT, E_OUT, N_OUT, W_OUT, S_OUT, E_OUT, N_OUT])
-        g = dgl.graph((u, v))
-        g.ndata['queue'] = th.tensor(state[0:7])
-        g.ndata['volume'] = th.tensor(state[8:15])
-        weight = []
-        for s in phase:
-            if s=='g':
-                weight.append(1)
-            elif s=='G':
-                weight.append(1)
+        connected_edges_from = []
+        connected_edges_to = []
+        stuck_edges_from = []
+        stuck_edges_to = []
+        
+        for i, s in enumerate(phase):
+            #TODO: g和G的权重可能不同
+            if s=='g' or s=='G':
+                connected_edges_from.append(u[i])
+                connected_edges_to.append(v[i])
             else:
-                weight.append(0)
-
-        g.edata['weight'] = th.tensor(weight)
-
+                stuck_edges_from.append(u[i])
+                stuck_edges_to.append(v[i])
+        g = dgl.heterograph({
+            ('road', 'connected', 'road'): (connected_edges_from, connected_edges_to),
+            ('road', 'stuck', 'road'): (stuck_edges_from, stuck_edges_to)
+        })
         return g
         
 
