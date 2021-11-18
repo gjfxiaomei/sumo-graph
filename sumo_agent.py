@@ -1,6 +1,11 @@
 import os, sys
 import numpy as np
 from collections import deque
+import warnings
+warnings.filterwarnings('ignore')
+
+from utils import list_of_groups
+from numpy.lib import utils
 from trafficmetrics import TrafficMetrics
 from roadnet_reader import RoadnetReader
 if 'SUMO_HOME' in os.environ:
@@ -14,14 +19,6 @@ import dgl
 import traci
 import torch as th
 
-N_IN  = 0
-N_OUT = 1
-S_IN  = 2
-S_OUT = 3
-W_IN  = 4
-W_OUT = 5
-E_IN  = 6
-E_OUT = 7
 
 #intract with sumo via traci
 #only consider one intersection
@@ -38,6 +35,7 @@ class SumoAgent:
         self.initilize = False
         self.sumoCmd = self.get_sumoCmd(args.gui, args.roadnet, args.max_steps)
         print(self.sumoCmd)
+        # print(self.netdata['lane'])
         self.start()
         
     #add incoming
@@ -83,7 +81,7 @@ class SumoAgent:
             red_lanes = set()
             for s in range(len(a)):
                 # if a[s] == 'g' or a[s] == 'G': not consider the right-turn lane.
-                if a[s] == 'G':
+                if a[s] == 'G' or a[s]=='g':
                     green_lanes.add(self.netdata['inter'][self.tl_id]['tlsindex'][s])
                 elif a[s] == 'r':
                     red_lanes.add(self.netdata['inter'][self.tl_id]['tlsindex'][s])
@@ -113,10 +111,10 @@ class SumoAgent:
             state = {'phase_time':self.phase_time,'ngv':gv,'nrv':rv}
             return state
         if self.args.metric == "queue":
-            print(self.current_phase)
-            return np.concatenate( [np.concatenate([self.get_queue(), self.get_volume()]), self.phase_to_one_hot[self.current_phase]] ), self.current_phase
+            # return np.concatenate( [np.concatenate([self.get_queue(), self.get_volume()])] ), self.current_phase
+            return np.concatenate( [np.concatenate([self.get_incoming_queue(), self.get_incoming_volume()]), self.phase_to_one_hot[self.current_phase]] ), self.current_phase
         elif self.args.metric == "throughput":
-            return np.concatenate( [np.concatenate([self.get_ave_throughput(),self.get_volume()]), self.phase_to_one_hot[self.current_phase]] ), self.current_phase
+            return np.concatenate( [np.concatenate([self.get_ave_throughput(),self.get_incoming_volume()]), self.phase_to_one_hot[self.current_phase]] ), self.current_phase
         
     def generate_graph(self, state, phase):
         #incoming_lanes = ['E2TL_1', 'E2TL_2', 'N2TL_1', 'N2TL_2', 'S2TL_1', 'S2TL_2', 'W2TL_1', 'W2TL_2']
@@ -174,12 +172,26 @@ class SumoAgent:
         else:
             return np.array([0]*len(self.phase_lanes.keys()))
     
-    def get_volume(self):
-        #number of vehicles in each incoming lane divided by the lane's capacity
+    def get_incoming_volume(self):
+        #number of vehicles in each incoming lane
         if self.data != None:
             return np.array([len(self.data[lane]) for lane in self.incoming_lanes])
         else:
             return np.array([0]*len(self.incoming_lanes))
+    
+    def get_outgoing_volume(self):
+        #number of vehicles in each outgoing lane
+        if self.data != None:
+            volume = []
+            for lane in self.outgoing_lanes:
+                if lane in self.data:
+                    volume.append(len(self.data[lane]))
+                else:
+                    volume.append(0)
+            return np.array(volume)
+        else:
+            return np.array([0]*len(self.outgoing_lanes))
+        
     
     def get_ave_throughput(self):
         ave_throughput = np.array(list(self.trafficmetrics.get_ave_throughput().values()))
@@ -218,8 +230,7 @@ class SumoAgent:
         else:
             return 0,0
 
-    def get_queue(self):
-        print(self.incoming_lanes)
+    def get_incoming_queue(self):
         if self.data != None:
             lane_queues = []
             for lane in self.incoming_lanes:
@@ -231,6 +242,14 @@ class SumoAgent:
         else:
             lane_queues = [0]*len(self.incoming_lanes)
         return np.array(lane_queues)
+    
+    
+    def get_volume_node(self):
+        volume = []
+        volume.extend(self.get_incoming_volume())
+        volume.extend(self.get_outgoing_volume())
+        volume = list_of_groups(volume, per_list_len=3)
+        return np.array(volume)
     
     def simulate_action(self,action):
         if self.args.tsc == "sotl":
@@ -259,7 +278,8 @@ class SumoAgent:
             #get reward after simulate.
             reward = self.get_reward()
             done = False
-            return reward, self.get_state(), done
+            next_state, _ = self.get_state()
+            return reward, next_state, done
 
     def get_reward(self):
         self.previous_action_phase = self.current_phase
@@ -396,20 +416,26 @@ class SumoAgent:
         if not self.initilize:
             self.green_phases = self.get_tl_green_phases()
             self.phase_lanes = self.get_phase_lanes(self.green_phases)
-            print(self.phase_lanes)
             self.all_red = len((self.green_phases[0]))*'r'
             self.incoming_lanes = set()
             for p in self.phase_lanes:
                 for l in self.phase_lanes[p]:
                     self.incoming_lanes.add(l)
             self.incoming_lanes = sorted(list(self.incoming_lanes))
-            
+            print(self.incoming_lanes)
+            self.outgoing_lanes = set()
+            for lane in self.incoming_lanes:
+                self.outgoing_lanes.add(list(self.netdata['lane'][lane]['outgoing'].keys())[0])
+            self.outgoing_lanes = sorted(list(self.outgoing_lanes))
+            print(self.outgoing_lanes)
+
             self.incoming_roads = set()
             for l in self.incoming_lanes:
                 road = str(l).split('_')[0]
                 if road not in self.incoming_roads:
                     self.incoming_roads.add(road)
             self.incoming_roads = sorted(list(self.incoming_roads))
+
 
             self.update_netdata()
 
