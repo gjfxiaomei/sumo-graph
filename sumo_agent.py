@@ -26,7 +26,28 @@ class SumoAgent:
     def __init__(self, args, roadnet, mode, red_t, yellow_t):
         self.args = args
         self.netdata_reader = RoadnetReader(roadnet)
-        self.netdata = self.netdata_reader.get_net_data()  
+        self.netdata = self.netdata_reader.get_net_data()
+        # print(self.netdata['inter'])
+        # graph_road_set = set()
+        # for inter in self.netdata['inter']:
+        #     for value in self.netdata['inter'][inter]['incoming']:
+        #         graph_road_set.add(value)
+        #     for value in self.netdata['inter'][inter]['outgoing']:
+        #         graph_road_set.add(value)
+        # graph_road_list = list(graph_road_set)
+        # # print(graph_road_list)
+        # u = []
+        # v = []
+        # for inter in self.netdata['inter']:
+        #     for lane in self.netdata['inter'][inter]['tlsindex'].values():
+        #         s = lane.split('_')[0]
+        #         e = list(self.netdata['lane'][lane]['outgoing'].keys())[0].split('_')[0]
+        #         u.append(graph_road_list.index(s))
+        #         v.append(graph_road_list.index(e))
+        # print(u)
+        # print(v)
+        # g = dgl.graph((th.tensor(u), th.tensor(v)))
+        
         self.mode = mode
         self.tl_id = "TL"
         self.red_t = red_t
@@ -401,7 +422,7 @@ class SumoAgent:
             sumoBinary = checkBinary('sumo')
         else:
             sumoBinary = checkBinary('sumo-gui')
-        sumoCmd = [sumoBinary, "-c", os.path.join('roadnet',roadnet+'.sumocfg'),"--no-step-log", "true","--waiting-time-memory", str(max_steps)]
+        sumoCmd = [sumoBinary, "-c", os.path.join('roadnet',roadnet+'.sumocfg'),"--no-step-log", "true","--waiting-time-memory", str(max_steps), "--no-warnings", "true"]
         return sumoCmd
     
     def start(self):

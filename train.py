@@ -2,6 +2,7 @@ import os
 import numpy
 
 from numpy.core.numeric import normalize_axis_tuple
+from agent.uniform_agent import UniformAgent
 from graph_network import GraphAgent
 from memory import Memory
 from parseargs import parse_cl_args
@@ -32,6 +33,15 @@ class Controller:
         self.sumo_agent = SumoAgent(args, self.args.roadnet, self.mode, self.args.red_duration, self.args.yellow_duration)     
         self.episode_road_travel_times = {road:[] for road in self.sumo_agent.incoming_roads}
         self.phase_list = self.sumo_agent.get_tl_green_phases()
+        self.phase_map = {}
+        self.phase_map['gGGgrrgrrgrr'] = '⬇↘'
+        self.phase_map['gGrgrrgGrgrr'] = '⬇⬆'
+        self.phase_map['grGgrrgrGgrr'] = '↖↘'
+        self.phase_map['grrgGGgrrgrr'] = '⬅↙'
+        self.phase_map['grrgGrgrrgGr'] = '➡⬅'
+        self.phase_map['grrgrGgrrgrG'] = '↗↙'
+        self.phase_map['grrgrrgGGgrr'] = '↖⬆'
+        self.phase_map['grrgrrgrrgGG'] = '➡↗'
         self.graph_agent = GraphAgent(self.phase_list, self.args.graph_in_dim, self.args.graph_hidden_dim, self.args.graph_out_dim, self.args.graph_num_heads, self.args.graph_lr,  ('road', 'connected', 'road'))
 
         self.episode_average_travel_times = []
@@ -46,6 +56,8 @@ class Controller:
             self.alg_agent = DQNAgent(state_size, action_size)
         elif self.args.tsc == 'ppo':
             self.alg_agent = PPOAgent(state_size, action_size)
+        elif self.args.tsc == 'uniform':
+            self.alg_agent = UniformAgent(action_size)
 
         if self.args.conTrain == True:
             self.load_model()
@@ -103,9 +115,9 @@ class Controller:
         
         simulation_time = round(timeit.default_timer() - start_time, 1)
         start_time = timeit.default_timer()
-        # self.alg_agent.train()
+        self.alg_agent.train()
         for phase in self.phase_list:
-            samples = self.graph_memory[phase].get_samples(128)
+            samples = self.graph_memory[phase].get_samples(args.graph_batch)
             if len(samples) !=0:
                 state = []
                 next_state = []
@@ -120,8 +132,7 @@ class Controller:
                 state = numpy.array(state)
                 next_state = numpy.array(next_state)
                 loss = self.graph_agent.train(state, next_state, phase)
-                print(loss)
-                writer.add_scalar(f'{phase}-loss', loss, episode+1)
+                writer.add_scalar(f'{self.phase_map[phase]}-loss', loss, episode+1)
         training_time = round(timeit.default_timer() - start_time, 1)
         return simulation_time, training_time, average_travel_times, self.episode_reward
     
@@ -145,7 +156,7 @@ class Controller:
 
 if __name__ == "__main__":
     args = parse_cl_args()
-    writer = SummaryWriter(comment="--"+args.tsc+"--"+args.metric+"--"+args.cmt)
+    writer = SummaryWriter(comment=f"tsc-{args.tsc}-graph_lr-{args.graph_lr}-graph_batch-{args.graph_batch}")
     log = Logger('episode_info.log',level='info')
     ctl = Controller(args)
     episode = 0

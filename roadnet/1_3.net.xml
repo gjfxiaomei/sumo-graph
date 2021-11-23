@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 10/27/20 16:51:06 by Eclipse SUMO netedit Version 1.3.1
+<!-- generated on 2021-11-23 14:34:56 by Eclipse SUMO netedit Version 1.10.0
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <sumo-net-file value="C:\Users\json\Desktop\linux\tsc-sumo\roadnet\1_3.net.xml"/>
+        <sumo-net-file value="C:\Users\Administrator\Desktop\sumo-graph\roadnet\1_3.net.xml"/>
     </input>
 
     <output>
-        <output-file value="C:\Users\json\Desktop\linux\tsc-sumo\roadnet\1_3.net.xml"/>
+        <output-file value="C:\Users\Administrator\Desktop\sumo-graph\roadnet\1_3.net.xml"/>
     </output>
 
     <processing>
+        <geometry.min-radius.fix.railways value="false"/>
         <geometry.max-grade.fix value="false"/>
         <offset.disable-normalization value="true"/>
-        <opposites.guess.fix-lengths value="true"/>
         <lefthand value="false"/>
     </processing>
 
@@ -29,10 +29,14 @@
         <walkingareas value="false"/>
     </pedestrian>
 
+    <report>
+        <aggregate-warnings value="5"/>
+    </report>
+
 </configuration>
 -->
 
-<net version="1.3" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+<net version="1.9" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
 
     <location netOffset="0.00,0.00" convBoundary="-150.00,-150.00,300.00,150.00" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
 
@@ -190,7 +194,7 @@
         <phase duration="20" state="gGrgrrgGrgrr"/>
         <phase duration="20" state="grGgrrgrGgrr"/>
         <phase duration="20" state="grrgGrgrrgGr"/>
-        <phase duration="20" state="grrgyGgrrgyG"/>
+        <phase duration="20" state="grrgrGgrrgrG"/>
     </tlLogic>
 
     <junction id="E" type="dead_end" x="300.00" y="0.00" incLanes="TL22E_0 TL22E_1 TL22E_2" intLanes="" shape="300.00,0.00 300.00,-9.60 300.00,0.00"/>

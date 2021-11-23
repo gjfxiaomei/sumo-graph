@@ -130,4 +130,9 @@ class RoadnetReader:
 
         
         intersection_data = {str(node):node_data[node] for node in node_data if "traffic_light" in net.getNode(node).getType()}
+        for inter in intersection_data:
+            sorted_tlsindex = {}
+            for key in sorted(intersection_data[inter]['tlsindex'].keys()):
+                sorted_tlsindex[key] = intersection_data[inter]['tlsindex'][key]
+            intersection_data[inter]['tlsindex'] = sorted_tlsindex
         return node_data, intersection_data

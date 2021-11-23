@@ -34,5 +34,5 @@ python delay.py -tsc dqn -m throughput -roadnet single4 -green_duration 20 -mln 
 python test.py -m throughput -roadnet single4 -green_duration 15 -mln
 
 
-#graph
+# graph
 python train.py -m queue -roadnet single8 -green_duration 15 -cmt duration=15

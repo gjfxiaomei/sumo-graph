@@ -16,8 +16,8 @@ def parse_cl_args():
     parser.add_argument("-conTrain",default=False,action='store_true',dest='conTrain',help='continue train if last train is not ideal')
     ##sumo params
     parser.add_argument("-gui",default=False,action='store_true',dest='gui',help='use gui, default:False')
-    parser.add_argument("-sumocfg",type=str,default='single4',dest='sumocfg',help='path to desired simulation sumo configuration file')
-    parser.add_argument("-roadnet",type=str,default='single4',dest='roadnet',help = 'roadnet flie, options:[single4,single8]')
+    parser.add_argument("-sumocfg",type=str,default='1_3',dest='sumocfg',help='path to desired simulation sumo configuration file')
+    parser.add_argument("-roadnet",type=str,default='1_3',dest='roadnet',help = 'roadnet flie, options:[single4,single8]')
 
     parser.add_argument("-train_episodes",type=int,default=100,dest='train_episodes',help='total train episodes')
     parser.add_argument("-test_episodes",type=int,default=10,dest='test_episodes',help='total test episodes')
@@ -37,6 +37,7 @@ def parse_cl_args():
     parser.add_argument('-graph_out_dim', type=int, default=3)
     parser.add_argument('-graph_num_heads', type=int, default=2)
     parser.add_argument('-graph_lr', type=float, default=1e-3)
+    parser.add_argument('-graph_batch', type=int, default=64)
 
 
     #rl parmas

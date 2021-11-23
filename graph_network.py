@@ -110,7 +110,6 @@ class GraphAgent(object):
         self.optimizer_dict[phase].zero_grad()
         loss.backward()
         self.optimizer_dict[phase].step()
-        print(f'{phase}-{loss.item()}')
         return loss.item()
 
     def generate_graph(self, phase):
