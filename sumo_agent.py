@@ -47,7 +47,7 @@ class SumoAgent:
         # print(u)
         # print(v)
         # g = dgl.graph((th.tensor(u), th.tensor(v)))
-        
+
         self.mode = mode
         self.tl_id = "TL"
         self.red_t = red_t
@@ -74,6 +74,16 @@ class SumoAgent:
                     lane_vehicles[lane] = {}
                 lane_vehicles[lane][v] = tl_data[v]
         return lane_vehicles
+    
+    def get_phase_representation(self, phase):
+        w = []
+        for s in phase:
+            #TODO: g和G的权重可能不同
+            if s=='g' or s=='G':
+                w.append(1)
+            else:
+                w.append(0)
+        return w
     
     def get_state_size(self):
         if self.args.metric == "queue":

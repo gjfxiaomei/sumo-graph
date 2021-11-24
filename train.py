@@ -3,7 +3,7 @@ import numpy
 
 from numpy.core.numeric import normalize_axis_tuple
 from agent.uniform_agent import UniformAgent
-from graph_network import GraphAgent
+from graph_network2 import GraphAgent
 from memory import Memory
 from parseargs import parse_cl_args
 from logger import Logger
@@ -42,14 +42,14 @@ class Controller:
         self.phase_map['grrgrGgrrgrG'] = '↗↙'
         self.phase_map['grrgrrgGGgrr'] = '↖⬆'
         self.phase_map['grrgrrgrrgGG'] = '➡↗'
-        self.graph_agent = GraphAgent(self.phase_list, self.args.graph_in_dim, self.args.graph_hidden_dim, self.args.graph_out_dim, self.args.graph_num_heads, self.args.graph_lr,  ('road', 'connected', 'road'))
+        self.graph_agent = GraphAgent(self.args.graph_in_dim, self.args.graph_hidden_dim, self.args.graph_out_dim, self.args.graph_num_heads, self.args.graph_lr)
 
         self.episode_average_travel_times = []
         self.save_path = set_train_path(args.roadnet, args.tsc, self.mode, self.args.metric, self.args.cmt)
         self.saver = Saver(self.save_path)
-        self.graph_memory = {}
-        for phase in self.phase_list:
-            self.graph_memory[phase] = Memory(size_max=500000, size_min=50)
+        self.graph_memory = Memory(size_max=500000, size_min=50)
+        # for phase in self.phase_list:
+        #     self.graph_memory[phase] = Memory(size_max=500000, size_min=50)
         state_size = self.sumo_agent.get_state_size()
         action_size = self.sumo_agent.get_action_size()
         if self.args.tsc == 'dqn':
@@ -92,7 +92,7 @@ class Controller:
                 #simulate a phase
                 reward, next_state, _ = self.sumo_agent.simulate_action(action)
                 next_volume_node = self.sumo_agent.get_volume_node()
-                self.graph_memory[phase].add_sample((current_volume_node, next_volume_node))
+                self.graph_memory.add_sample((current_volume_node, next_volume_node, self.sumo_agent.get_phase_representation(phase)))
                 # print(reward)
                 self.episode_reward += reward
                 self.time_step =self.sumo_agent.get_timestep()
@@ -116,23 +116,25 @@ class Controller:
         simulation_time = round(timeit.default_timer() - start_time, 1)
         start_time = timeit.default_timer()
         self.alg_agent.train()
-        for phase in self.phase_list:
-            samples = self.graph_memory[phase].get_samples(args.graph_batch)
-            if len(samples) !=0:
-                state = []
-                next_state = []
-                for i in range(self.graph_agent.agent_dict[phase].g.num_nodes()):
-                    current_node_state = []
-                    next_node_state = []
-                    for item in samples:
-                        current_node_state.append(item[0][i])
-                        next_node_state.append(item[1][i])
-                    state.append(current_node_state)
-                    next_state.append(next_node_state)
-                state = numpy.array(state)
-                next_state = numpy.array(next_state)
-                loss = self.graph_agent.train(state, next_state, phase)
-                writer.add_scalar(f'{self.phase_map[phase]}-loss', loss, episode+1)
+        # for phase in self.phase_list:
+        samples = self.graph_memory.get_samples(args.graph_batch)
+        if len(samples) !=0:
+            state = []
+            next_state = []
+            phase = numpy.array([item[2] for item in samples])
+            for i in range(self.graph_agent.g.num_nodes()):
+                current_node_state = []
+                next_node_state = []
+                for item in samples:
+                    current_node_state.append(item[0][i])
+                    next_node_state.append(item[1][i])
+                state.append(current_node_state)
+                next_state.append(next_node_state)
+            state = numpy.array(state)
+            next_state = numpy.array(next_state)
+            print(state)
+            loss = self.graph_agent.train(state, next_state, phase)
+            writer.add_scalar(f'loss', loss, episode+1)
         training_time = round(timeit.default_timer() - start_time, 1)
         return simulation_time, training_time, average_travel_times, self.episode_reward
     
